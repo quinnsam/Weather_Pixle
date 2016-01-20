@@ -1,3 +1,9 @@
+// This #include statement was automatically added by the Particle IDE.
+#include "SparkTime.h"
+
+// This #include statement was automatically added by the Particle IDE.
+#include "neopixel.h"
+
 /*
  * This is a minimal example, see extra-examples.cpp for a version
  * with more explantory documentation, example routines, how to
@@ -45,20 +51,21 @@ void setup()
 }
 void loop()
 {
+  if (rtc.hour(rtc.now()) > 5 && rtc.hour(rtc.now()) < 22) {
+    if ( rtc.now() > wait_counter) {
+        wait_counter = rtc.now() + 900;
+        // Let's request the weather, but no more than once every 60 seconds.
+        Serial.println("Requesting Weather!");
+        // publish the event that will trigger our Webhook
+        Particle.publish("get_weather");
+    }
+    // and wait at least 60 seconds before doing it again
+    //delay(600);
 
-  if ( rtc.now() > wait_counter) {
-    wait_counter = rtc.now() + 900;
-    // Let's request the weather, but no more than once every 60 seconds.
-    Serial.println("Requesting Weather!");
-    // publish the event that will trigger our Webhook
-    Particle.publish("get_weather");
+    display_color(cur_cond);
+    //display_color("Partly Cloudy");
+    //Serial.println(cur_cond);
   }
-  // and wait at least 60 seconds before doing it again
-  //delay(600);
-
-  display_color(cur_cond);
-  //display_color("Partly Cloudy");
-  //Serial.println(cur_cond);
 }
 
 // This function will get called when weather data comes in
@@ -70,7 +77,8 @@ void gotWeatherData(const char *name, const char *data) {
 
 void display_color(String cond) {
   //Serial.println(cond);
-  if (cond == "Overcast" || find_text("Cloudy", cond) != -1) {
+  //if (cond == "Overcast" || find_text("Cloudy", cond) != -1) {
+  if (cond == "Overcast" || cond == "Partly Cloudy" || cond == "Mostly Cloudy" ) {
     strip.setPixelColor(0, 160, 160, 160);
   } else if (cond == "Sunny") {
     strip.setPixelColor(0, 255, 255, 0);
@@ -79,7 +87,7 @@ void display_color(String cond) {
   } else if (cond == "Cloudy") {
     strip.setPixelColor(0, 160, 160, 160);
   } else {
-    if (cond != notify && cond != "null") {
+    if (cond != notify && cond != NULL) {
       // Set to red to indicate error or non-parsed bit
       strip.setPixelColor(0, 255, 0, 0);
       Serial.println("Sending Push");
@@ -87,14 +95,14 @@ void display_color(String cond) {
       notify = cond;
     }
   }
-  if (rtc.hour(rtc.now()) > 5 && rtc.hour(rtc.now()) < 22) {
-    strip.show();
-  }
-
+  strip.show();
 }
 
 int find_text(String needle, String haystack) {
   if (haystack.length() < 3 || needle.length() < 3) {
+    return -1;
+  }
+  if (haystack == NULL || needle == NULL) {
     return -1;
   }
   int foundpos = -1;
